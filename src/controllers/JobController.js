@@ -6,13 +6,9 @@ module.exports = {
     create(req, res) {
         return res.render("job")
     },
-    save(req, res) {
+    async save(req, res) {
 
-        const jobs = Job.get()
-        const lastId = jobs[jobs.length - 1]?.id || 0;
-
-        jobs.push({
-            id: lastId + 1,
+        await Job.create({
             name: req.body.name,
             avatar: req.body.avatar,
             "daily-hours": req.body["daily-hours"],
@@ -22,11 +18,11 @@ module.exports = {
 
         return res.redirect("/")
     },
-    show(req, res) {
+    async show(req, res) {
 
         const jobId = req.params.id
-        const jobs = Job.get()
-        const profile = Profile.get()
+        const jobs = await Job.get()
+        const profile = await Profile.get()
         const job = jobs.find(x => Number(x.id) === Number(jobId))
         if (!job)
             return res.send("Job not foud!")
@@ -35,34 +31,22 @@ module.exports = {
 
         return res.render("job-edit", { job })
     },
-    update(req, res) {
+    async update(req, res) {
         const jobId = req.params.id
-        const jobs = Job.get()
-        const job = jobs.find(x => Number(x.id) === Number(jobId))
-        if (!job)
-            return res.send("Job not foud!")
 
         const updatedJob = {
-            ...job,
+            id: jobId,
             name: req.body.name,
             "total-hours": req.body["total-hours"],
             "daily-hours": req.body['daily-hours'],
-
         }
-
-        const jobsUpdated = jobs.map(job => {
-            if (Number(job.id) === Number(jobId)) {
-                job = updatedJob
-            }
-            return job
-        })
-        Job.update(jobsUpdated)
+        await Job.update(updatedJob)
 
         return res.redirect("/job/" + jobId)
     },
-    delete(req, res) {
+    async delete(req, res) {
         const jobId = req.params.id
-        Job.delete(jobId)
+        await Job.delete(jobId)
 
         return res.redirect("/")
     }
